@@ -1,4 +1,4 @@
-# AP Bin File Merger
+# imec Binary Files Merger
 
 ## Overview
 This Python class provides a Python-based tool for merging `.bin` files from IMEC Neuropixels recordings. The script identifies corresponding `.bin` and `.meta` files in different directories and combines them while preserving file structure and metadata integrity.
