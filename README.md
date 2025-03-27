@@ -11,7 +11,7 @@ This Python class provides a Python-based tool for merging `.bin` files from IME
 
 ### 1. Clone the Repository
 ```sh
-git clone [https://github.com/mohamedsbadawy/NeuropixelBinFilesMerger](https://github.com/mohamedsbadawy/NeuropixelBinFilesMerger.git)
+git clone https://github.com/mohamedsbadawy/NeuropixelBinFilesMerger.git
 cd NeuropixelBinFilesMerger
 ```
 
