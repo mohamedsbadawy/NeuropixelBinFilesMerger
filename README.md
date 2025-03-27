@@ -18,6 +18,7 @@ cd NeuropixelBinFilesMerger
 ### 2. Run the Script
 Modify the paths to your datasets and execute the script:
 ```sh
+from NPMerger import NeuropixelsMerger
 merger = NeuropixelsMerger(
         dir1=r'Z:\~\(imec_directory)\directory_1_g0',
         dir2=r'Z:\~\(imec_directory)\directory_2_g0',
