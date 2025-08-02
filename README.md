@@ -23,7 +23,9 @@ merger = NeuropixelsMerger(
         dir1=r'Z:\~\(imec_directory)\directory_1_g0',
         dir2=r'Z:\~\(imec_directory)\directory_2_g0',
         output_dir=r'ZZ:\~\(imec_directory)\directory_merged_g0',
-        extension='lf.bin' # or ap.bin
+        extension='lf.bin', # or ap.bin
+        time_range1 = tuple (0,1000), #time in seconds to the part of probe(s) 1 to merge to probe 2- default none and merge the whole file.
+        time_range2 = tuple( 0,100) #default none and merge the whole file.
     )
     merger.merge_matching_files()
     merger.fix_meta_files()
