@@ -84,22 +84,22 @@ class NeuropixelsMerger:
             print(f"  {file1} bytes {f1_start} to {f1_end}")
             print(f"  {file2} bytes {f2_start} to {f2_end}")
             print(f"Output: {output_file}")
+            if not os.path.exists(output_file):
+                with open(output_file, 'wb') as outfile:
+                    for path, start, end in [(file1, f1_start, f1_end), (file2, f2_start, f2_end)]:
+                        with open(path, 'rb') as f:
+                            f.seek(start)
+                            to_read = end - start
+                            while to_read > 0:
+                                chunk = f.read(min(1024 * 1024, to_read))
+                                if not chunk:
+                                    break
+                                outfile.write(chunk)
+                                to_read -= len(chunk)
+                                bytes_written += len(chunk)
+                                print(f"Progress: {bytes_written / total_size * 100:.2f}%", end='\r')
 
-            with open(output_file, 'wb') as outfile:
-                for path, start, end in [(file1, f1_start, f1_end), (file2, f2_start, f2_end)]:
-                    with open(path, 'rb') as f:
-                        f.seek(start)
-                        to_read = end - start
-                        while to_read > 0:
-                            chunk = f.read(min(1024 * 1024, to_read))
-                            if not chunk:
-                                break
-                            outfile.write(chunk)
-                            to_read -= len(chunk)
-                            bytes_written += len(chunk)
-                            print(f"Progress: {bytes_written / total_size * 100:.2f}%", end='\r')
-
-            print("\nMerging complete.")
+                print("\nMerging complete.")
             return total_size
         except Exception as e:
             print(f"Error merging files: {e}")
@@ -135,9 +135,9 @@ class NeuropixelsMerger:
         
         for imec_num in set(imec_map1.keys()) & set(imec_map2.keys()):
             for file1, file2 in zip(files1[imec_map1[imec_num]], files2[imec_map2[imec_num]]):
-                output_folder = Path(self.output_dir) / Path(file2).parent.relative_to(self.dir2)
+                output_folder = Path(self.output_dir) / Path(file1).parent.relative_to(self.dir1)
                 output_folder.mkdir(parents=True, exist_ok=True)
-                total_size = self.merge_ap_bin(file1, file2, str(output_folder / Path(file2).name),
+                total_size = self.merge_ap_bin(file1, file2, str(output_folder / Path(file1).name),
                                                file1_time_range=self.time_range1,file2_time_range=self.time_range2,meta1_path=file1.replace(".bin",".meta"),meta2_path=file2.replace(".bin",".meta"))
         self.totalSize = total_size
 
@@ -154,18 +154,18 @@ class NeuropixelsMerger:
         """Merges two ap.meta dictionaries."""
         fs = float(meta1['imSampRate'])
         n_ch = int(meta1['nSavedChans'])
+        temp_meta = meta1
         if self.totalSize is not None:
-            return {
-            "fileSizeBytes": self.totalSize,
-            "fileTimeSecs": self.totalSize / (2 * n_ch * fs),
-            "firstSample": str(min(int(meta1["firstSample"]), int(meta2["firstSample"])))
-        }
+            temp_meta['fileSizeBytes'] = self.totalSize
+            temp_meta['fileTimeSecs'] = self.totalSize / (2 * n_ch * fs)
+            temp_meta['firstSample'] = str(min(int(meta1["firstSample"]), int(meta2["firstSample"])))
+            return temp_meta
         else:
-            return {
-                "fileSizeBytes": str(int(meta1["fileSizeBytes"]) + int(meta2["fileSizeBytes"])),
-                "fileTimeSecs": str(float(meta1["fileTimeSecs"]) + float(meta2["fileTimeSecs"])),
-                "firstSample": str(min(int(meta1["firstSample"]), int(meta2["firstSample"])))
-            }
+            temp_meta['fileSizeBytes'] = str(int(meta1["fileSizeBytes"]) + int(meta2["fileSizeBytes"]))
+            temp_meta['fileTimeSecs'] = str(float(meta1["fileTimeSecs"]) + float(meta2["fileTimeSecs"]))
+            temp_meta['firstSample'] = str(min(int(meta1["firstSample"]), int(meta2["firstSample"])))
+            return temp_meta
+               
 
     def write_meta(self, meta_path: str, meta_data: Dict[str, str]):
         """Writes a dictionary to an ap.meta file."""
@@ -184,8 +184,8 @@ class NeuropixelsMerger:
             for file1, file2 in zip(files1[imec_map1[imec_num]], files2[imec_map2[imec_num]]):
                 meta1, meta2 = self.read_meta(file1), self.read_meta(file2)
                 merged_meta = self.merge_meta(meta1, meta2)
-                output_folder = Path(self.output_dir) / Path(file2).parent.relative_to(self.dir2)
+                output_folder = Path(self.output_dir) / Path(file1).parent.relative_to(self.dir2)
                 output_folder.mkdir(parents=True, exist_ok=True)
-                self.write_meta(str(output_folder / Path(file2).name), merged_meta)
+                self.write_meta(str(output_folder / Path(file1).name), merged_meta)
 
 
